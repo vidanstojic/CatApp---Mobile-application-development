@@ -1,0 +1,20 @@
+package com.example.proba2.ui.compose
+
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+
+@Composable
+fun AppTopBarIcon(
+    icon: ImageVector,
+    onClick: () -> Unit,
+    contentDescription: String? = null,
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+        )
+    }
+}
