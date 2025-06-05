@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
-import com.example.proba2.ui.viewmodel.BreedListScreenContract.*
 import com.example.proba2.breeds.list.CatBreedsListState
 import com.example.proba2.breeds.list.model.CatBreedUiModel
 import kotlinx.coroutines.launch
