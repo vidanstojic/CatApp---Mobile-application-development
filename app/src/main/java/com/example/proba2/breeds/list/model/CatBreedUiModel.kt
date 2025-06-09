@@ -8,6 +8,7 @@ data class CatBreedUiModel (
     val alternativeName: String?,//proveriti da li treba lista
     val description: String,
     val temperament: String,//proveriti da li treba lista
+    val imageId: String?,
     val imageUrl: String?,
     val originCountries: String,//proveriti da li treba lista
     val lifespan: String,

@@ -106,7 +106,7 @@ fun BreedListScreen(
                             .background(color = Color.Blue)
                             .fillMaxWidth()
                             .padding(all = 16.dp),
-                        text = "This is a sticky header.",
+                        text = "",
                         color = Color.White,
                     )
                 }
@@ -154,7 +154,7 @@ private fun BreedListItem(
         Row {
             SubcomposeAsyncImage(
                 modifier = Modifier.size(100.dp),
-                model = "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg",
+                model = model.imageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
 //                                contentScale = ContentScale.Fit,

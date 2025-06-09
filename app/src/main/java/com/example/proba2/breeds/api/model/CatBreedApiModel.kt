@@ -32,7 +32,15 @@ data class CatBreedApiModel(
     @SerialName("wikipedia_url")
     val wikipediaUrl: String? = null,
     @SerialName("reference_image_id")
-    val imageUrl: String? = null,
+    val imageId: String? = null,
+    var imageUrl: String? = null,
+)
+
+@Serializable
+data class CatImageResponse(
+    val id: String,
+    @SerialName("url")
+    val url: String,
 )
 
 @Serializable

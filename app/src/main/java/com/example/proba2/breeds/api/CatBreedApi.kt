@@ -1,6 +1,7 @@
 package com.example.proba2.breeds.api
 
 import com.example.proba2.breeds.api.model.CatBreedApiModel
+import com.example.proba2.breeds.api.model.CatImageResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -24,8 +25,8 @@ interface CatBreedApi {
     )
     @GET("images/{image_id}")
     suspend fun getSpecificImage(
-        @Path("image_id") imageUrl:String,
-    ):String
+        @Path("image_id") imageId: String,
+    ): CatImageResponse
 
     @GET("breeds/search?q=query")
     suspend fun search(

@@ -30,10 +30,12 @@ class CatBreedsViewModel @Inject constructor(
         viewModelScope.launch {
             setState { copy(loading = true) }
             try {
-                val breeds = repository.fetchAllBreeds().map { it.asBreedUiModel() }
+                val breeds = repository.fetchAllBreeds().map { breedApiModel ->
+                    val imageUrl = repository.fetchBreedImage(breedApiModel.imageId)
+                    breedApiModel.asBreedUiModel().copy(imageUrl = imageUrl)
+                }
                 setState { copy(breeds = breeds) }
             } catch (error: Exception) {
-                // TODO Handle error
                 Log.d("test", "Failed to fetch.", error)
             } finally {
                 setState { copy(loading = false) }
@@ -46,7 +48,7 @@ class CatBreedsViewModel @Inject constructor(
         childFriendly = childFriendly,
         dogFriendly = dogFriendly,
         energyLevel = energyLevel,
-        imageUrl = imageUrl,
+        imageId = imageId,
         temperament = temperament,
         intelligence = intelligence,
         vocalisation = vocalisation,
@@ -58,5 +60,6 @@ class CatBreedsViewModel @Inject constructor(
         originCountries = origin,
         id = id,
         alternativeName = alternativeNames,
+        imageUrl = imageUrl,
     )
 }

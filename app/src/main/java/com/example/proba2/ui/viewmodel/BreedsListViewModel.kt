@@ -58,7 +58,8 @@ class BreedsListViewModel @Inject constructor(
         alternativeName = alternativeNames,
         vocalisation = vocalisation,
         originCountries = origin,
-        imageUrl = imageUrl
+        imageId = imageId,
+        imageUrl = null
 
     )
 }

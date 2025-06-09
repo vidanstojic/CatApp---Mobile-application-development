@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.proba2.breeds.list.CatBreedsViewModel
 import com.example.proba2.ui.screens.BreedDetailsScreen
 import com.example.proba2.ui.screens.BreedListScreen
 import com.example.proba2.ui.viewmodel.BreedsListViewModel
@@ -87,7 +88,7 @@ private fun NavGraphBuilder.breedList(
 ) = composable(
     route = route
 ) {
-    val breedListViewModel = hiltViewModel<BreedsListViewModel>()
+    val breedListViewModel = hiltViewModel<CatBreedsViewModel>()
     val state = breedListViewModel.state.collectAsState()
     BreedListScreen(
         state = state.value,

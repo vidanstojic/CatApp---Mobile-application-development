@@ -1,5 +1,6 @@
 package com.example.proba2.breeds.repository
 
+import android.util.Log
 import com.example.proba2.breeds.api.CatBreedApi
 import com.example.proba2.breeds.api.model.CatBreedApiModel
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +16,17 @@ class CatBreedsRepository @Inject constructor(
     suspend fun fetchAllBreeds(): List<CatBreedApiModel> {
         return withContext(Dispatchers.IO) {
             catBreedApi.getAllCatBreeds()
+        }
+    }
+
+    suspend fun fetchBreedImage(imageId: String?): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = catBreedApi.getSpecificImage(imageId ?: "")
+                response.url // Use the URL from the response
+            } catch (e: Exception) {
+                "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg" // Return the default image URL if there's an error
+            }
         }
     }
 
