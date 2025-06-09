@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
@@ -122,32 +123,18 @@ private fun BreedListItem(
     ) {
         Row {
             SubcomposeAsyncImage(
-                modifier = Modifier.size(100.dp),
                 model = model.imageUrl,
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-//                                contentScale = ContentScale.Fit,
-//                                contentScale = ContentScale.FillWidth,
-//                                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(100.dp),
                 loading = {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(36.dp),
-                        )
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 },
                 error = {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Image(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = null
-                        )
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Error, null)
                     }
                 }
             )

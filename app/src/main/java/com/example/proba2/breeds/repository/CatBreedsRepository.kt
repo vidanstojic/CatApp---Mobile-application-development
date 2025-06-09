@@ -13,6 +13,8 @@ class CatBreedsRepository @Inject constructor(
     private val catBreedApi: CatBreedApi,
     private val okHttpClient: OkHttpClient,
 ) {
+    private val imageCache = mutableMapOf<String, String>()
+
     suspend fun fetchAllBreeds(): List<CatBreedApiModel> {
         return withContext(Dispatchers.IO) {
             catBreedApi.getAllCatBreeds()
@@ -21,11 +23,13 @@ class CatBreedsRepository @Inject constructor(
 
     suspend fun fetchBreedImage(imageId: String?): String {
         return withContext(Dispatchers.IO) {
-            try {
-                val response = catBreedApi.getSpecificImage(imageId ?: "")
-                response.url // Use the URL from the response
-            } catch (e: Exception) {
-                "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg" // Return the default image URL if there's an error
+            imageCache.getOrPut(imageId.orEmpty()) {
+                try {
+                    val response = catBreedApi.getSpecificImage(imageId.orEmpty())
+                    response.url
+                } catch (e: Exception) {
+                    "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg"
+                }
             }
         }
     }
