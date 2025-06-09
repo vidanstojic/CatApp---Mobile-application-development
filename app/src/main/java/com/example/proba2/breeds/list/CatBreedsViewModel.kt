@@ -28,28 +28,39 @@ class CatBreedsViewModel @Inject constructor(
         fetchAllBreeds()
     }
 
-    // In CatBreedsViewModel.kt
     private fun fetchAllBreeds() {
         viewModelScope.launch {
             setState { copy(loading = true) }
             try {
                 val breeds = repository.fetchAllBreeds()
 
-                // Fetch all images in parallel
-                val imageUrls = breeds.map { breed ->
-                    viewModelScope.async {
-                        repository.fetchBreedImage(breed.imageId)
-                    }
-                }.awaitAll()
+                // 1. Prvo prikaži podatke bez slika
+                val initialList = breeds.map { it.asBreedUiModel() }
+                setState { copy(breeds = initialList) }
 
-                // Combine breeds with fetched image URLs
-                val breedsWithImages = breeds.zip(imageUrls) { breed, url ->
-                    breed.asBreedUiModel().copy(imageUrl = url)
+                // 2. Zatim asinhrono ažuriraj slike po jednu
+                breeds.forEach { breed ->
+                    launch {
+                        try {
+                            val imageUrl = repository.fetchBreedImage(breed.imageId)
+                            val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
+
+                            // Ažuriraj samo jednu stavku u listi
+                            setState {
+                                copy(
+                                    breeds = this.breeds.map {
+                                        if (it.id == updatedBreed.id) updatedBreed else it
+                                    }
+                                )
+                            }
+                        } catch (e: Exception) {
+                            Log.e("fetchImage", "Failed to fetch image for ${breed.id}", e)
+                        }
+                    }
                 }
 
-                setState { copy(breeds = breedsWithImages) }
             } catch (error: Exception) {
-                Log.d("test", "Failed to fetch breeds", error)
+                Log.e("fetchAllBreeds", "Failed to fetch breeds", error)
             } finally {
                 setState { copy(loading = false) }
             }

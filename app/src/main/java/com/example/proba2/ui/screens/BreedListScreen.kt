@@ -91,10 +91,6 @@ fun BreedListScreen(
                         onBreedClick = onBreedClick,
                     )
                 }
-
-                items(count = 5) {
-
-                }
             }
         }
     )
