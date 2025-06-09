@@ -13,7 +13,6 @@ import androidx.navigation.navArgument
 import com.example.proba2.breeds.list.CatBreedsViewModel
 import com.example.proba2.ui.screens.BreedDetailsScreen
 import com.example.proba2.ui.screens.BreedListScreen
-import com.example.proba2.ui.viewmodel.BreedsListViewModel
 
 private fun NavController.navigateToDetails(breedId: String) {
     this.navigate(route = "details/$breedId")

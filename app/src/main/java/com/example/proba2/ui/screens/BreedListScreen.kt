@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
-import com.example.proba2.ui.viewmodel.BreedListScreenContract.*
 import com.example.proba2.breeds.list.CatBreedsListState
 import com.example.proba2.breeds.list.model.CatBreedUiModel
 import kotlinx.coroutines.launch
@@ -81,36 +80,6 @@ fun BreedListScreen(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-
-                item(
-                    key = "1",
-                    contentType = "Plain Header",
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .background(color = Color.Red)
-                            .fillMaxWidth()
-                            .height(128.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-
-                        Text(text = "This is a text in an item.", color = Color.White)
-                    }
-                }
-
-                stickyHeader(
-                    contentType = "Sticky Header"
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .background(color = Color.Blue)
-                            .fillMaxWidth()
-                            .padding(all = 16.dp),
-                        text = "",
-                        color = Color.White,
-                    )
-                }
-
                 items(
                     items = state.breeds,
                     key = { breed -> breed.id},
