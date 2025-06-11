@@ -2,6 +2,7 @@ package com.example.proba2.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -13,7 +14,7 @@ import androidx.navigation.navArgument
 import com.example.proba2.breeds.list.CatBreedsViewModel
 import com.example.proba2.ui.screens.BreedDetailsScreen
 import com.example.proba2.ui.screens.BreedListScreen
-
+import androidx.compose.runtime.getValue
 private fun NavController.navigateToDetails(breedId: String) {
     this.navigate(route = "details/$breedId")
 }
@@ -30,67 +31,48 @@ private fun NavController.navigateToDetails(breedId: String) {
 fun AppNavigation() {
     val navController = rememberNavController()
 
+    // Važan korak – koristimo NavHost sa početnom rutom
     NavHost(
         navController = navController,
         startDestination = "breeds"
     ) {
-        breedList(
-            route = "breeds",
-            onBreedClick = {
-                navController.navigate("details/$it")
-            }
-        )
+        // Ekran sa listom rasa
+        composable(route = "breeds") { navBackStackEntry ->
+            // Deljeni ViewModel koji se koristi i u details ekranu
+            val sharedViewModel = hiltViewModel<CatBreedsViewModel>(navBackStackEntry)
 
+            val state by sharedViewModel.state.collectAsState()
+
+            BreedListScreen(
+                state = state,
+                onBreedClick = { breedId ->
+                    navController.navigate("details/$breedId")
+                }
+            )
+        }
+
+        // Ekran sa detaljima o rasi
         composable(
             route = "details/{breedId}",
             arguments = listOf(
-                navArgument("breedId") {
-                    type = NavType.StringType
-                }
+                navArgument("breedId") { type = NavType.StringType }
             )
         ) { navBackStackEntry ->
+            val parentEntry = remember(navBackStackEntry) {
+                navController.getBackStackEntry("breeds")
+            }
+            val sharedViewModel = hiltViewModel<CatBreedsViewModel>(parentEntry)
+
             val breedId = navBackStackEntry.arguments?.getString("breedId") ?: ""
 
             BreedDetailsScreen(
                 breedId = breedId,
                 onClose = {
                     navController.navigateUp()
-                }
+                },
+                viewModel = sharedViewModel
             )
         }
 
-//        composable(
-//            route = "editor?$PASSWORD_ID_ARG={$PASSWORD_ID_ARG}",
-//            arguments = listOf(
-//                navArgument(name = PASSWORD_ID_ARG) {
-//                    type = NavType.IntType
-//                    nullable = false
-//                    defaultValue = Password.INVALID_ID
-//                },
-//            ),
-//        ) { navBackStackEntry ->
-//            val passwordId = navBackStackEntry.passwordIdOrThrow
-//
-//            PasswordEditorScreen(
-//                passwordId = passwordId,
-//                onClose = {
-//                    navController.navigateUp()
-//                },
-//            )
-//        }
     }
-}
-
-private fun NavGraphBuilder.breedList(
-    route: String,
-    onBreedClick: (String) -> Unit,
-) = composable(
-    route = route
-) {
-    val breedListViewModel = hiltViewModel<CatBreedsViewModel>()
-    val state = breedListViewModel.state.collectAsState()
-    BreedListScreen(
-        state = state.value,
-        onBreedClick = onBreedClick,
-    )
 }
