@@ -47,7 +47,8 @@ fun AppNavigation() {
                 state = state,
                 onBreedClick = { breedId ->
                     navController.navigate("details/$breedId")
-                }
+                },
+                navController = navController
             )
         }
 
@@ -70,7 +71,8 @@ fun AppNavigation() {
                 onClose = {
                     navController.navigateUp()
                 },
-                viewModel = sharedViewModel
+                viewModel = sharedViewModel,
+                navController = navController
             )
         }
 

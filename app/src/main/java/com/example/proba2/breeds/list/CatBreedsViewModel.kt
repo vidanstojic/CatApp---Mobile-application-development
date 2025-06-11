@@ -1,6 +1,9 @@
 package com.example.proba2.breeds.list
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proba2.breeds.api.model.CatBreedApiModel
@@ -59,6 +62,12 @@ class CatBreedsViewModel @Inject constructor(
                         }
                     }
                 }
+                setState {
+                    copy(
+                        breeds = initialList,
+                        filteredBreeds = initialList
+                    )
+                }
 
             } catch (error: Exception) {
                 Log.e("fetchAllBreeds", "Failed to fetch breeds", error)
@@ -106,6 +115,27 @@ class CatBreedsViewModel @Inject constructor(
             }
         }
     }
+
+    var searchQuery by mutableStateOf("")
+        private set
+
+    fun updateSearchQuery(query: String) {
+        searchQuery = query
+        filterBreeds()
+    }
+
+    private fun filterBreeds() {
+        val allBreeds = state.value.breeds
+        if (searchQuery.isBlank()) {
+            _state.update { it.copy(filteredBreeds = allBreeds) }
+        } else {
+            val filtered = allBreeds.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
+            _state.update { it.copy(filteredBreeds = filtered) }
+        }
+    }
+
 
     private fun CatBreedApiModel.asBreedUiModel() = CatBreedUiModel(
         name = this.name,

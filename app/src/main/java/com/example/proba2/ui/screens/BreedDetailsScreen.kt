@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.example.proba2.breeds.list.CatBreedsViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.proba2.ui.compose.AppTopBar
 import com.example.proba2.ui.theme.CatalistOnSurface
 import com.example.proba2.ui.theme.CatalistPrimary
@@ -33,7 +34,8 @@ import rs.edu.raf.rma.R
 fun BreedDetailsScreen(
     breedId: String,
     onClose: () -> Unit,
-    viewModel: CatBreedsViewModel = hiltViewModel()
+    viewModel: CatBreedsViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
@@ -59,8 +61,10 @@ fun BreedDetailsScreen(
         topBar = {
             AppTopBar(
                 logoPainter = logo,
-                onMenuClick = { /* TODO */ },
-                onSearchClick = { /* TODO */ }
+                onMenuClick = { /* ako treba */ },
+                onSearchSubmit = { query ->
+                    navController.navigate("search/${query}")
+                }
             )
         }
     ) { padding ->

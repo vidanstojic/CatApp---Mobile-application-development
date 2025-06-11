@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil3.compose.SubcomposeAsyncImage
 import com.example.proba2.breeds.list.CatBreedsListState
 import com.example.proba2.breeds.list.model.CatBreedUiModel
@@ -64,6 +65,7 @@ import rs.edu.raf.rma.R
 fun BreedListScreen(
     state: CatBreedsListState,
     onBreedClick: (String) -> Unit,
+    navController: NavController
 ) {
     val uiScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -78,8 +80,10 @@ fun BreedListScreen(
         topBar = {
             AppTopBar(
                 logoPainter = logo,
-                onMenuClick = { /* TODO: Open menu */ },
-                onSearchClick = { /* TODO: Open search */ }
+                onMenuClick = { /* ako treba */ },
+                onSearchSubmit = { query ->
+                    navController.navigate("search/${query}")
+                }
             )
         },
         floatingActionButton = {
