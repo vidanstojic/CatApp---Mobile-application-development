@@ -37,7 +37,7 @@ fun AppNavigation() {
         breedList(
             route = "breeds",
             onBreedClick = {
-                navController.navigate(route = "users/grid/$it")
+                navController.navigate("details/$it")
             }
         )
 

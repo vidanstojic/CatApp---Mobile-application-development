@@ -33,6 +33,11 @@ class CatBreedsRepository @Inject constructor(
             }
         }
     }
+    suspend fun fetchBreedDetails(breedId: String): CatBreedApiModel {
+        return withContext(Dispatchers.IO) {
+            catBreedApi.getCatBreed(breedId)
+        }
+    }
 
     suspend fun directOkHttpUseGetExample() {
         val request = Request.Builder()

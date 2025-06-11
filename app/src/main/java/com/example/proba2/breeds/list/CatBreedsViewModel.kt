@@ -66,6 +66,36 @@ class CatBreedsViewModel @Inject constructor(
             }
         }
     }
+    private var _selectedBreed = MutableStateFlow<CatBreedUiModel?>(null)
+    val selectedBreed = _selectedBreed.asStateFlow()
+
+    fun fetchBreedDetails(breedId: String) {
+        viewModelScope.launch {
+            try {
+                val breedDetails = repository.fetchBreedDetails(breedId)
+                _selectedBreed.value = breedDetails.asBreedUiModel()
+            } catch (e: Exception) {
+                Log.e("FetchBreedDetails", "Failed to fetch breed details", e)
+            }
+        }
+    }
+    private val _breedImage = MutableStateFlow<String?>(null)
+    val breedImage = _breedImage.asStateFlow()
+
+    // Method to fetch breed image by imageId
+    fun fetchBreedImage(imageId: String?) {
+        viewModelScope.launch {
+            if (imageId != null && imageId.isNotBlank()) {
+                try {
+                    val imageUrl = repository.fetchBreedImage(imageId)
+                    _breedImage.value = imageUrl
+                } catch (e: Exception) {
+                    Log.e("FetchBreedImage", "Failed to fetch breed image", e)
+                    _breedImage.value = "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg" // Default image URL
+                }
+            }
+        }
+    }
 
     private fun CatBreedApiModel.asBreedUiModel() = CatBreedUiModel(
         name = this.name,
