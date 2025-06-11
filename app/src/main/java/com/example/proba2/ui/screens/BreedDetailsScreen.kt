@@ -35,15 +35,22 @@ fun BreedDetailsScreen(
     onClose: () -> Unit,
     viewModel: CatBreedsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val logo = painterResource(id = R.drawable.catalist2)
 
-    // 👇 Breed se traži i kešira kada se promeni lista
-    val breed by remember(state.breeds) {
-        derivedStateOf {
-            state.breeds.find { it.id == breedId }
+    val breed by viewModel.selectedBreed.collectAsState()
+    val imageUrl by viewModel.breedImage.collectAsState()
+
+    // Pokreni učitavanje kada se ekran otvori
+    LaunchedEffect(breedId) {
+        viewModel.fetchBreedDetails(breedId)
+    }
+
+    // Kada se breed učita, tek tada pokreni učitavanje slike
+    LaunchedEffect(breed?.imageId) {
+        if (breed?.imageId != null) {
+            viewModel.fetchBreedImage(breed!!.imageId)
         }
     }
 
@@ -57,9 +64,10 @@ fun BreedDetailsScreen(
             )
         }
     ) { padding ->
+
         when {
-            // ⏳ Prikaz loading indikatora dok se lista još učitava
-            state.breeds.isEmpty() -> {
+            breed == null -> {
+                // ⏳ Loading dok ne stigne breed
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -70,8 +78,7 @@ fun BreedDetailsScreen(
                 }
             }
 
-            // ✅ Prikaz detalja ako je pronađena rasa
-            breed != null -> {
+            else -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -79,17 +86,19 @@ fun BreedDetailsScreen(
                         .padding(padding)
                         .padding(16.dp)
                 ) {
-                    SubcomposeAsyncImage(
-                        model = breed!!.imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .clip(MaterialTheme.shapes.medium),
-                        contentScale = ContentScale.Inside
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // ✅ Prikaz slike – asinhrono učitana
+                    if (imageUrl != null) {
+                        SubcomposeAsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .clip(MaterialTheme.shapes.medium),
+                            contentScale = ContentScale.Inside
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
                     Text("Name: ${breed!!.name}", style = MaterialTheme.typography.titleLarge, color = CatalistOnSurface)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -120,36 +129,26 @@ fun BreedDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Button(
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(breed!!.wikipediaUrl))
-                            context.startActivity(intent)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Text("Open on Wikipedia", color = Color.Black)
+                    breed!!.wikipediaUrl?.let { url ->
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text("Open on Wikipedia", color = Color.Black)
+                        }
                     }
-                }
-            }
-
-            // ❌ Ako stvarno nema rase — prikaz poruke
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("Breed not found", style = MaterialTheme.typography.bodyLarge, color = CatalistOnSurface)
                 }
             }
         }
     }
 }
+
 
 
 @Composable

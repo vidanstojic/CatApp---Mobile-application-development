@@ -20,6 +20,7 @@ class CatBreedsViewModel @Inject constructor(
     private val repository: CatBreedsRepository,
 ) : ViewModel() {
 
+    private val cachedBreedDetails = mutableMapOf<String, CatBreedUiModel>()
     private val _state = MutableStateFlow(CatBreedsListState())
     val state = _state.asStateFlow()
     private fun setState(reducer: CatBreedsListState.() -> CatBreedsListState) = _state.update(reducer)
@@ -71,14 +72,23 @@ class CatBreedsViewModel @Inject constructor(
 
     fun fetchBreedDetails(breedId: String) {
         viewModelScope.launch {
+            // Ako već imamo detalje u kešu — koristi ih odmah
+            cachedBreedDetails[breedId]?.let {
+                _selectedBreed.value = it
+                return@launch
+            }
+
             try {
                 val breedDetails = repository.fetchBreedDetails(breedId)
-                _selectedBreed.value = breedDetails.asBreedUiModel()
+                val uiModel = breedDetails.asBreedUiModel()
+                cachedBreedDetails[breedId] = uiModel
+                _selectedBreed.value = uiModel
             } catch (e: Exception) {
                 Log.e("FetchBreedDetails", "Failed to fetch breed details", e)
             }
         }
     }
+
     private val _breedImage = MutableStateFlow<String?>(null)
     val breedImage = _breedImage.asStateFlow()
 
