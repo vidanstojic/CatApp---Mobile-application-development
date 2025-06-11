@@ -39,6 +39,20 @@ class CatBreedsRepository @Inject constructor(
         }
     }
 
+    private val breedImagesCache = mutableMapOf<String, List<String>>()
+
+    suspend fun getBreedImages(breedId: String, limit: Int = 10): List<String> {
+        return breedImagesCache.getOrPut(breedId) {
+            val list = try {
+                catBreedApi.searchBreedImages(breedId, limit)
+                    .map { it.url }
+            } catch (e: Exception) {
+                emptyList()
+            }
+            list
+        }
+    }
+
     suspend fun directOkHttpUseGetExample() {
         val request = Request.Builder()
             .url("https://servis.raf.edu.rs/users")

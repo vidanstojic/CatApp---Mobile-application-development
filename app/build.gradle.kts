@@ -93,6 +93,10 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
+    // Accompanist (za slider)
+    implementation("com.google.accompanist:accompanist-pager:0.31.5-beta")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
+
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

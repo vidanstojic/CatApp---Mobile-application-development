@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -133,6 +134,16 @@ class CatBreedsViewModel @Inject constructor(
                 it.name.contains(searchQuery, ignoreCase = true)
             }
             _state.update { it.copy(filteredBreeds = filtered) }
+        }
+    }
+
+    private val _breedImages = MutableStateFlow<List<String>>(emptyList())
+    val breedImages: StateFlow<List<String>> = _breedImages
+
+    fun loadBreedImages(breedId: String, count: Int = 10) {
+        viewModelScope.launch {
+            val images = repository.getBreedImages(breedId, count)
+            _breedImages.value = images
         }
     }
 

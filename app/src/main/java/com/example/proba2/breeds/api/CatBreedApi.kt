@@ -29,6 +29,12 @@ interface CatBreedApi {
         @Path("image_id") imageId: String,
     ): CatImageResponse
 
+    @GET("images/search")
+    suspend fun searchBreedImages(
+        @Query("breed_ids") breedId: String,
+        @Query("limit") limit: Int = 10
+    ): List<CatImageResponse>
+
     @GET("breeds/search")
     suspend fun searchBreeds(
         @Query("q") query: String
