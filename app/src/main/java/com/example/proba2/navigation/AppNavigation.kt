@@ -15,6 +15,8 @@ import com.example.proba2.breeds.list.CatBreedsViewModel
 import com.example.proba2.ui.screens.BreedDetailsScreen
 import com.example.proba2.ui.screens.BreedListScreen
 import androidx.compose.runtime.getValue
+import com.example.proba2.ui.screens.SearchScreen
+
 private fun NavController.navigateToDetails(breedId: String) {
     this.navigate(route = "details/$breedId")
 }
@@ -73,6 +75,20 @@ fun AppNavigation() {
                 },
                 viewModel = sharedViewModel,
                 navController = navController
+            )
+        }
+        composable(
+            route = "search/{query}",
+            arguments = listOf(
+                navArgument("query") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val query = backStackEntry.arguments?.getString("query") ?: ""
+            SearchScreen(
+                query = query,
+                onBreedClick = { breedId ->
+                    navController.navigate("details/$breedId")
+                }
             )
         }
 

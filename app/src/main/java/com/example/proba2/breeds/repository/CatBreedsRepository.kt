@@ -52,6 +52,12 @@ class CatBreedsRepository @Inject constructor(
             list
         }
     }
+    suspend fun searchBreeds(query: String): List<CatBreedApiModel> {
+        return withContext(Dispatchers.IO) {
+            catBreedApi.searchBreeds(query)
+        }
+    }
+
 
     suspend fun directOkHttpUseGetExample() {
         val request = Request.Builder()

@@ -147,6 +147,26 @@ class CatBreedsViewModel @Inject constructor(
         }
     }
 
+    private val _results = MutableStateFlow<List<CatBreedUiModel>>(emptyList())
+    val results = _results.asStateFlow()
+
+    private val _loading = MutableStateFlow(false)
+    val loading = _loading.asStateFlow()
+
+    fun search(query: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val apiResults = repository.searchBreeds(query)
+                _results.value = apiResults.map { it.asBreedUiModel() }
+            } catch (e: Exception) {
+                _results.value = emptyList()
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
 
     private fun CatBreedApiModel.asBreedUiModel() = CatBreedUiModel(
         name = this.name,

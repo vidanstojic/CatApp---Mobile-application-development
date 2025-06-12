@@ -122,7 +122,7 @@ fun BreedListScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BreedListItem(
+fun BreedListItem(
     model: CatBreedUiModel,
     onBreedClick: (String) -> Unit,
 ) {
