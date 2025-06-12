@@ -63,13 +63,6 @@ class CatBreedsViewModel @Inject constructor(
                         }
                     }
                 }
-                setState {
-                    copy(
-                        breeds = initialList,
-                        filteredBreeds = initialList
-                    )
-                }
-
             } catch (error: Exception) {
                 Log.e("fetchAllBreeds", "Failed to fetch breeds", error)
             } finally {
@@ -98,45 +91,6 @@ class CatBreedsViewModel @Inject constructor(
             }
         }
     }
-
-    private val _breedImage = MutableStateFlow<String?>(null)
-    val breedImage = _breedImage.asStateFlow()
-
-    // Method to fetch breed image by imageId
-    fun fetchBreedImage(imageId: String?) {
-        viewModelScope.launch {
-            if (imageId != null && imageId.isNotBlank()) {
-                try {
-                    val imageUrl = repository.fetchBreedImage(imageId)
-                    _breedImage.value = imageUrl
-                } catch (e: Exception) {
-                    Log.e("FetchBreedImage", "Failed to fetch breed image", e)
-                    _breedImage.value = "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg" // Default image URL
-                }
-            }
-        }
-    }
-
-    var searchQuery by mutableStateOf("")
-        private set
-
-    fun updateSearchQuery(query: String) {
-        searchQuery = query
-        filterBreeds()
-    }
-
-    private fun filterBreeds() {
-        val allBreeds = state.value.breeds
-        if (searchQuery.isBlank()) {
-            _state.update { it.copy(filteredBreeds = allBreeds) }
-        } else {
-            val filtered = allBreeds.filter {
-                it.name.contains(searchQuery, ignoreCase = true)
-            }
-            _state.update { it.copy(filteredBreeds = filtered) }
-        }
-    }
-
     private val _breedImages = MutableStateFlow<List<String>>(emptyList())
     val breedImages: StateFlow<List<String>> = _breedImages
 
@@ -146,23 +100,52 @@ class CatBreedsViewModel @Inject constructor(
             _breedImages.value = images
         }
     }
+/**
+ *
+ *     private val _state = MutableStateFlow(CatBreedsListState())
+ *     val state = _state.asStateFlow()
+ *     private fun setState(reducer: CatBreedsListState.() -> CatBreedsListState) = _state.update(reducer)
+ *
+ * */
 
-    private val _results = MutableStateFlow<List<CatBreedUiModel>>(emptyList())
-    val results = _results.asStateFlow()
-
-    private val _loading = MutableStateFlow(false)
-    val loading = _loading.asStateFlow()
+    private val _searchState = MutableStateFlow(CatBreedsListState())
+    val results = _searchState.asStateFlow()
+    private fun setSearchState(reducer: CatBreedsListState.() -> CatBreedsListState) = _searchState.update(reducer)
 
     fun search(query: String) {
         viewModelScope.launch {
-            _loading.value = true
+            setSearchState { copy(loading = true) }
             try {
-                val apiResults = repository.searchBreeds(query)
-                _results.value = apiResults.map { it.asBreedUiModel() }
-            } catch (e: Exception) {
-                _results.value = emptyList()
+                val breeds = repository.searchBreeds(query)
+
+                // 1. Prvo prikaži podatke bez slika
+                val initialList = breeds.map { it.asBreedUiModel() }
+                setSearchState { copy(breeds = initialList) }
+
+                // 2. Zatim asinhrono ažuriraj slike po jednu
+                breeds.forEach { breed ->
+                    launch {
+                        try {
+                            val imageUrl = repository.fetchBreedImage(breed.imageId)
+                            val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
+
+                            // Ažuriraj samo jednu stavku u listi
+                            setSearchState {
+                                copy(
+                                    breeds = this.breeds.map {
+                                        if (it.id == updatedBreed.id) updatedBreed else it
+                                    }
+                                )
+                            }
+                        } catch (e: Exception) {
+                            Log.e("fetchImage", "Failed to fetch image for ${breed.id}", e)
+                        }
+                    }
+                }
+            } catch (error: Exception) {
+                Log.e("fetchAllBreeds", "Failed to fetch breeds", error)
             } finally {
-                _loading.value = false
+                setState { copy(loading = false) }
             }
         }
     }
