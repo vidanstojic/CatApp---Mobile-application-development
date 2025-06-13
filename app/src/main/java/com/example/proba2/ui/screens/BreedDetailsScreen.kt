@@ -143,6 +143,17 @@ fun BreedDetailsScreen(
                                 Text("Open on Wikipedia", color = Color.Black)
                             }
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                navController.navigate("gallery/${breedId}")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
+//                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Gallery", color = Color.Black)
+                        }
                     }
                 }
             }

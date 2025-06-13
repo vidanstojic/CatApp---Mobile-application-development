@@ -1,38 +1,17 @@
 package com.example.proba2.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.*
+import androidx.navigation.compose.*
 import com.example.proba2.breeds.list.CatBreedsViewModel
-import com.example.proba2.ui.screens.BreedDetailsScreen
-import com.example.proba2.ui.screens.BreedListScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import com.example.proba2.ui.screens.ProfileSetupScreen
-import com.example.proba2.ui.screens.SearchScreen
+import com.example.proba2.ui.screens.*
 import com.example.proba2.user.viewmodel.UserProfileViewModel
-
-private fun NavController.navigateToDetails(breedId: String) {
-    this.navigate(route = "details/$breedId")
-}
-//
-//private fun NavController.navigateToEditor(passwordId: Int? = null) {
-//    if (passwordId != null) {
-//        this.navigate(route = "editor?$PASSWORD_ID_ARG=$passwordId")
-//    } else {
-//        this.navigate(route = "editor")
-//    }
-//}
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun AppNavigation() {
@@ -40,18 +19,19 @@ fun AppNavigation() {
     val userProfileViewModel = hiltViewModel<UserProfileViewModel>()
     val userProfile by userProfileViewModel.userProfile.collectAsState(initial = null)
 
-    // Važan korak – koristimo NavHost sa početnom rutom
     var startDestination by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userProfile) {
         startDestination = if (userProfile != null) "breeds" else "profile_setup"
     }
+
     startDestination?.let { start ->
         NavHost(
             navController = navController,
             startDestination = start
         ) {
 
+            // Profil
             composable("profile_setup") {
                 ProfileSetupScreen(
                     onProfileCreated = {
@@ -61,9 +41,9 @@ fun AppNavigation() {
                     }
                 )
             }
-            // Ekran sa listom rasa
+
+            // Lista rasa
             composable(route = "breeds") { navBackStackEntry ->
-                // Deljeni ViewModel koji se koristi i u details ekranu
                 val sharedViewModel = hiltViewModel<CatBreedsViewModel>(navBackStackEntry)
 
                 val state by sharedViewModel.state.collectAsState()
@@ -77,34 +57,63 @@ fun AppNavigation() {
                 )
             }
 
-            // Ekran sa detaljima o rasi
+            // Detalji rase
             composable(
                 route = "details/{breedId}",
-                arguments = listOf(
-                    navArgument("breedId") { type = NavType.StringType }
-                )
+                arguments = listOf(navArgument("breedId") { type = NavType.StringType })
             ) { navBackStackEntry ->
                 val parentEntry = remember(navBackStackEntry) {
                     navController.getBackStackEntry("breeds")
                 }
                 val sharedViewModel = hiltViewModel<CatBreedsViewModel>(parentEntry)
-
                 val breedId = navBackStackEntry.arguments?.getString("breedId") ?: ""
 
                 BreedDetailsScreen(
                     breedId = breedId,
-                    onClose = {
-                        navController.navigateUp()
-                    },
+                    onClose = { navController.navigateUp() },
                     viewModel = sharedViewModel,
                     navController = navController
                 )
             }
+
+            // Galerija slika u gridu
+            composable(
+                route = "gallery/{breedId}",
+                arguments = listOf(
+                    navArgument("breedId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val breedId = backStackEntry.arguments?.getString("breedId") ?: ""
+                GalleryScreen(
+                    breedId = breedId,
+                    navController = navController
+                )
+            }
+
+
+            // Viewer slika sa swipe-om
+            composable(
+                route = "viewer/{breedId}/{encodedImageUrl}",
+                arguments = listOf(
+                    navArgument("breedId") { type = NavType.StringType },
+                    navArgument("encodedImageUrl") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val breedId = backStackEntry.arguments?.getString("breedId") ?: ""
+                val encodedImageUrl = backStackEntry.arguments?.getString("encodedImageUrl") ?: ""
+                val decodedUrl = URLDecoder.decode(encodedImageUrl, StandardCharsets.UTF_8.toString())
+
+                PhotoViewerScreen(
+                    breedId = breedId,
+                    selectedImageUrl = decodedUrl,
+                    navController = navController
+                )
+            }
+
+            // Pretraga
             composable(
                 route = "search/{query}",
-                arguments = listOf(
-                    navArgument("query") { type = NavType.StringType }
-                )
+                arguments = listOf(navArgument("query") { type = NavType.StringType })
             ) { backStackEntry ->
                 val query = backStackEntry.arguments?.getString("query") ?: ""
                 SearchScreen(
@@ -114,7 +123,6 @@ fun AppNavigation() {
                     }
                 )
             }
-
         }
     }
 }

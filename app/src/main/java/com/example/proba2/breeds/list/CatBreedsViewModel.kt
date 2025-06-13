@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proba2.breeds.api.model.CatBreedApiModel
@@ -39,37 +41,40 @@ class CatBreedsViewModel @Inject constructor(
             try {
                 val breeds = repository.fetchAllBreeds()
 
-                // 1. Prvo prikaži podatke bez slika
                 val initialList = breeds.map { it.asBreedUiModel() }
                 setState { copy(breeds = initialList) }
 
-                // 2. Zatim asinhrono ažuriraj slike po jednu
+                val semaphore = Semaphore(permits = 5) // Dozvoljeno max 5 paralelnih zahteva
+
                 breeds.forEach { breed ->
                     launch {
-                        try {
-                            val imageUrl = repository.fetchBreedImage(breed.imageId)
-                            val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
+                        semaphore.withPermit {
+                            try {
+                                val imageUrl = repository.fetchBreedImage(breed.imageId)
+                                val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
 
-                            // Ažuriraj samo jednu stavku u listi
-                            setState {
-                                copy(
-                                    breeds = this.breeds.map {
-                                        if (it.id == updatedBreed.id) updatedBreed else it
-                                    }
-                                )
+                                setState {
+                                    copy(
+                                        breeds = this.breeds.map {
+                                            if (it.id == updatedBreed.id) updatedBreed else it
+                                        }
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                // Logovanje ako zatreba
                             }
-                        } catch (e: Exception) {
-                            Log.e("fetchImage", "Failed to fetch image for ${breed.id}", e)
                         }
                     }
                 }
+
             } catch (error: Exception) {
-                Log.e("fetchAllBreeds", "Failed to fetch breeds", error)
+                // Log error
             } finally {
                 setState { copy(loading = false) }
             }
         }
     }
+
     private var _selectedBreed = MutableStateFlow<CatBreedUiModel?>(null)
     val selectedBreed = _selectedBreed.asStateFlow()
 

@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.proba2.breeds.api.CatBreedApi
 import com.example.proba2.breeds.api.model.CatBreedApiModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -27,12 +28,20 @@ class CatBreedsRepository @Inject constructor(
                 try {
                     val response = catBreedApi.getSpecificImage(imageId.orEmpty())
                     response.url
+                } catch (e: retrofit2.HttpException) {
+                    if (e.code() == 429) {
+                        delay(1000L)
+                        return@withContext fetchBreedImage(imageId)
+                    } else {
+                        "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg"
+                    }
                 } catch (e: Exception) {
                     "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg"
                 }
             }
         }
     }
+
     suspend fun fetchBreedDetails(breedId: String): CatBreedApiModel {
         return withContext(Dispatchers.IO) {
             catBreedApi.getCatBreed(breedId)
