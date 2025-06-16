@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.proba2.breeds.api.model.CatBreedApiModel
 import com.example.proba2.breeds.list.model.CatBreedUiModel
 import com.example.proba2.breeds.repository.CatBreedsRepository
+import com.example.proba2.data.base.PreferencesDataStoreManager
 import com.example.proba2.data.model.CatBreedEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -18,13 +19,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 @HiltViewModel
 class CatBreedsViewModel @Inject constructor(
     private val repository: CatBreedsRepository,
+    private val dataStoreManager: PreferencesDataStoreManager,
 ) : ViewModel() {
 
     private val cachedBreedDetails = mutableMapOf<String, CatBreedUiModel>()
@@ -34,8 +36,21 @@ class CatBreedsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.refreshAllBreedsFromApi() // Prvi i jedini poziv ka API-ju
-            observeBreedsFromDb() // Nakon toga slušamo bazu
+            dataStoreManager.isDbInitializedFlow.collect { initialized ->
+                if (!initialized) {
+                    setState { copy(loading = true) }
+                    try {
+                        repository.refreshAllBreedsFromApi()
+                        dataStoreManager.setDbInitialized(true)
+                    } catch (e: Exception) {
+                        // Možeš setovati error stanje ako treba
+                    } finally {
+                        setState { copy(loading = false) }
+                    }
+                }
+                // Nakon što smo sigurni da je DB inicijalizovan, slušamo bazu
+                observeBreedsFromDb()
+            }
         }
     }
 
@@ -47,46 +62,6 @@ class CatBreedsViewModel @Inject constructor(
             }
         }
     }
-
-//    private fun fetchAllBreeds() {
-//        viewModelScope.launch {
-//            setState { copy(loading = true) }
-//            try {
-//                val breeds = repository.fetchAllBreeds()
-//
-//                val initialList = breeds.map { it.asBreedUiModel() }
-//                setState { copy(breeds = initialList) }
-//
-//                val semaphore = Semaphore(permits = 5) // Dozvoljeno max 5 paralelnih zahteva
-//
-//                breeds.forEach { breed ->
-//                    launch {
-//                        semaphore.withPermit {
-//                            try {
-//                                val imageUrl = repository.fetchBreedImage(breed.imageId)
-//                                val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
-//
-//                                setState {
-//                                    copy(
-//                                        breeds = this.breeds.map {
-//                                            if (it.id == updatedBreed.id) updatedBreed else it
-//                                        }
-//                                    )
-//                                }
-//                            } catch (e: Exception) {
-//                                // Logovanje ako zatreba
-//                            }
-//                        }
-//                    }
-//                }
-//
-//            } catch (error: Exception) {
-//                // Log error
-//            } finally {
-//                setState { copy(loading = false) }
-//            }
-//        }
-//    }
 
     private var _selectedBreed = MutableStateFlow<CatBreedUiModel?>(null)
     val selectedBreed = _selectedBreed.asStateFlow()
@@ -118,13 +93,6 @@ class CatBreedsViewModel @Inject constructor(
             _breedImages.value = images
         }
     }
-/**
- *
- *     private val _state = MutableStateFlow(CatBreedsListState())
- *     val state = _state.asStateFlow()
- *     private fun setState(reducer: CatBreedsListState.() -> CatBreedsListState) = _state.update(reducer)
- *
- * */
 
     private val _searchState = MutableStateFlow(CatBreedsListState())
     val results = _searchState.asStateFlow()
@@ -145,7 +113,6 @@ class CatBreedsViewModel @Inject constructor(
         }
     }
 
-
     fun CatBreedEntity.toUiModel() = CatBreedUiModel(
         name = name,
         childFriendly = childFriendly,
@@ -158,26 +125,6 @@ class CatBreedsViewModel @Inject constructor(
         lifespan = lifeSpan,
         wikipediaUrl = wikipediaUrl,
         weight = weight_metric,
-        description = description,
-        isRare = isRare,
-        originCountries = origin,
-        id = id,
-        alternativeName = alternativeNames,
-        imageUrl = imageUrl,
-    )
-
-    private fun CatBreedApiModel.asBreedUiModel() = CatBreedUiModel(
-        name = this.name,
-        childFriendly = childFriendly,
-        dogFriendly = dogFriendly,
-        energyLevel = energyLevel,
-        imageId = imageId,
-        temperament = temperament,
-        intelligence = intelligence,
-        vocalisation = vocalisation,
-        lifespan = lifeSpan,
-        wikipediaUrl = wikipediaUrl,
-        weight = weight,
         description = description,
         isRare = isRare,
         originCountries = origin,

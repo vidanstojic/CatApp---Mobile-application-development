@@ -1,11 +1,14 @@
 package com.example.proba2.breeds.repository
 
+import android.content.Context
+import android.preference.PreferenceManager
 import android.util.Log
 import com.example.proba2.breeds.api.CatBreedApi
 import com.example.proba2.breeds.api.model.CatBreedApiModel
 import com.example.proba2.breeds.api.model.toEntity
 import com.example.proba2.data.base.CatBreedDao
 import com.example.proba2.data.model.CatBreedEntity
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +18,8 @@ import okhttp3.Request
 import javax.inject.Inject
 class CatBreedsRepository @Inject constructor(
     private val catBreedApi: CatBreedApi,
-    private val dao: CatBreedDao
+    private val dao: CatBreedDao,
+    @ApplicationContext private val context: Context,
 ) {
 
     private val imageCache = mutableMapOf<String, String>()
@@ -35,8 +39,8 @@ class CatBreedsRepository @Inject constructor(
         }
         dao.clearAll()
         dao.insertAll(mapped)
+        markApiRefreshed()
     }
-
 
     suspend fun searchBreedsFromDb(query: String): List<CatBreedEntity> {
         return dao.search("%$query%")
@@ -65,5 +69,15 @@ class CatBreedsRepository @Inject constructor(
                 emptyList()
             }
         }
+    }
+
+    fun shouldRefreshFromApi(): Boolean {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        return !prefs.getBoolean("is_data_initialized", false)
+    }
+
+    fun markApiRefreshed() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit().putBoolean("is_data_initialized", true).apply()
     }
 }
