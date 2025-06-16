@@ -39,18 +39,15 @@ class CatBreedsViewModel @Inject constructor(
             try {
                 val breeds = repository.fetchAllBreeds()
 
-                // 1. Prvo prikaži podatke bez slika
                 val initialList = breeds.map { it.asBreedUiModel() }
                 setState { copy(breeds = initialList) }
 
-                // 2. Zatim asinhrono ažuriraj slike po jednu
                 breeds.forEach { breed ->
                     launch {
                         try {
                             val imageUrl = repository.fetchBreedImage(breed.imageId)
                             val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
 
-                            // Ažuriraj samo jednu stavku u listi
                             setState {
                                 copy(
                                     breeds = this.breeds.map {
@@ -75,7 +72,6 @@ class CatBreedsViewModel @Inject constructor(
 
     fun fetchBreedDetails(breedId: String) {
         viewModelScope.launch {
-            // Ako već imamo detalje u kešu — koristi ih odmah
             cachedBreedDetails[breedId]?.let {
                 _selectedBreed.value = it
                 return@launch
@@ -100,13 +96,6 @@ class CatBreedsViewModel @Inject constructor(
             _breedImages.value = images
         }
     }
-/**
- *
- *     private val _state = MutableStateFlow(CatBreedsListState())
- *     val state = _state.asStateFlow()
- *     private fun setState(reducer: CatBreedsListState.() -> CatBreedsListState) = _state.update(reducer)
- *
- * */
 
     private val _searchState = MutableStateFlow(CatBreedsListState())
     val results = _searchState.asStateFlow()
@@ -118,18 +107,15 @@ class CatBreedsViewModel @Inject constructor(
             try {
                 val breeds = repository.searchBreeds(query)
 
-                // 1. Prvo prikaži podatke bez slika
                 val initialList = breeds.map { it.asBreedUiModel() }
                 setSearchState { copy(breeds = initialList) }
 
-                // 2. Zatim asinhrono ažuriraj slike po jednu
                 breeds.forEach { breed ->
                     launch {
                         try {
                             val imageUrl = repository.fetchBreedImage(breed.imageId)
                             val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
 
-                            // Ažuriraj samo jednu stavku u listi
                             setSearchState {
                                 copy(
                                     breeds = this.breeds.map {

@@ -185,34 +185,33 @@ fun BreedListItem(
                 )
 
                 if (model.temperament.isNotEmpty()) {
-                            FlowRow(
-                                modifier = Modifier
-                                    .padding(top = 12.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                model.temperament
-                                    .split(",")
-                                    .map { it.trim() }
-                                    .take(5)
-                                    .forEach { trait ->
-                                        AssistChip(
-                                            onClick = { },
-                                            label = {
-                                                Text(
-                                                    text = trait,
-                                                    color = Color.White // 👈 tekst bele boje
-                                                )
-                                            },
-                                            border = BorderStroke(1.dp, Color.White), // 👈 bela ivica
-                                            colors = AssistChipDefaults.assistChipColors(
-                                                containerColor = Color.Transparent // 👈 providna pozadina
-                                            )
+                    FlowRow(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        model.temperament
+                            .split(",")
+                            .map { it.trim() }
+                            .take(5)
+                            .forEach { trait ->
+                                AssistChip(
+                                    onClick = { },
+                                    label = {
+                                        Text(
+                                            text = trait,
+                                            color = Color.White
                                         )
-                                    }
+                                    },
+                                    border = BorderStroke(1.dp, Color.White),
+                                    colors = AssistChipDefaults.assistChipColors(
+                                        containerColor = Color.Transparent
+                                    )
+                                )
                             }
-
+                    }
                 }
             }
         }
