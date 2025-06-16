@@ -1,5 +1,6 @@
 package com.example.proba2.breeds.api.model
 
+import com.example.proba2.data.model.CatBreedEntity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -48,3 +49,26 @@ data class Weight(
     val imperial: String,
     val metric: String,
 )
+
+fun CatBreedApiModel.toEntity(): CatBreedEntity = CatBreedEntity(
+    id = id,
+    name = name,
+    description = description,
+    temperament = temperament,
+    origin = origin,
+    countryCodes = countryCodes,
+    countryCode = countryCode,
+    lifeSpan = lifeSpan,
+    weight_impeliral = weight,
+    weight_metric = weight,
+    childFriendly = childFriendly,
+    dogFriendly = dogFriendly,
+    intelligence = intelligence,
+    energyLevel = energyLevel,
+    vocalisation = vocalisation,
+    isRare = isRare,
+    wikipediaUrl = wikipediaUrl,
+    imageId = imageId,
+    imageUrl = imageUrl
+)
+

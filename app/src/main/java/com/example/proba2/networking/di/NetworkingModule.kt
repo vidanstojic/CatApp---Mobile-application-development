@@ -26,6 +26,9 @@ object NetworkingModule {
          * Order of okhttp interceptors is important.
          * If logging was first it would not log the custom header.
          */
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // vreme za povezivanje sa serverom
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)    // vreme za čitanje odgovora
+        .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .addInterceptor {
             val updatedRequest = it.request().newBuilder()
 //                .url("https://servis.raf.edu.rs/users")
@@ -47,7 +50,7 @@ object NetworkingModule {
         okHttpClient: OkHttpClient,
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(" https://api.thecatapi.com/v1/")
+            .baseUrl("https://api.thecatapi.com/v1/")
             .client(okHttpClient)
             .addConverterFactory(NetworkingJson.asConverterFactory("application/json".toMediaType()))
             .build()

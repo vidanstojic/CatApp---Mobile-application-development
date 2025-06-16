@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.proba2.breeds.api.model.CatBreedApiModel
 import com.example.proba2.breeds.list.model.CatBreedUiModel
 import com.example.proba2.breeds.repository.CatBreedsRepository
+import com.example.proba2.data.model.CatBreedEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -32,70 +33,82 @@ class CatBreedsViewModel @Inject constructor(
     private fun setState(reducer: CatBreedsListState.() -> CatBreedsListState) = _state.update(reducer)
 
     init {
-        fetchAllBreeds()
+        viewModelScope.launch {
+            repository.refreshAllBreedsFromApi() // Prvi i jedini poziv ka API-ju
+            observeBreedsFromDb() // Nakon toga slušamo bazu
+        }
     }
 
-    private fun fetchAllBreeds() {
+    private fun observeBreedsFromDb() {
         viewModelScope.launch {
-            setState { copy(loading = true) }
-            try {
-                val breeds = repository.fetchAllBreeds()
-
-                val initialList = breeds.map { it.asBreedUiModel() }
-                setState { copy(breeds = initialList) }
-
-                val semaphore = Semaphore(permits = 5) // Dozvoljeno max 5 paralelnih zahteva
-
-                breeds.forEach { breed ->
-                    launch {
-                        semaphore.withPermit {
-                            try {
-                                val imageUrl = repository.fetchBreedImage(breed.imageId)
-                                val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
-
-                                setState {
-                                    copy(
-                                        breeds = this.breeds.map {
-                                            if (it.id == updatedBreed.id) updatedBreed else it
-                                        }
-                                    )
-                                }
-                            } catch (e: Exception) {
-                                // Logovanje ako zatreba
-                            }
-                        }
-                    }
-                }
-
-            } catch (error: Exception) {
-                // Log error
-            } finally {
-                setState { copy(loading = false) }
+            repository.observeAllBreeds().collect { entities ->
+                val uiModels = entities.map { it.toUiModel() }
+                setState { copy(breeds = uiModels) }
             }
         }
     }
+
+//    private fun fetchAllBreeds() {
+//        viewModelScope.launch {
+//            setState { copy(loading = true) }
+//            try {
+//                val breeds = repository.fetchAllBreeds()
+//
+//                val initialList = breeds.map { it.asBreedUiModel() }
+//                setState { copy(breeds = initialList) }
+//
+//                val semaphore = Semaphore(permits = 5) // Dozvoljeno max 5 paralelnih zahteva
+//
+//                breeds.forEach { breed ->
+//                    launch {
+//                        semaphore.withPermit {
+//                            try {
+//                                val imageUrl = repository.fetchBreedImage(breed.imageId)
+//                                val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
+//
+//                                setState {
+//                                    copy(
+//                                        breeds = this.breeds.map {
+//                                            if (it.id == updatedBreed.id) updatedBreed else it
+//                                        }
+//                                    )
+//                                }
+//                            } catch (e: Exception) {
+//                                // Logovanje ako zatreba
+//                            }
+//                        }
+//                    }
+//                }
+//
+//            } catch (error: Exception) {
+//                // Log error
+//            } finally {
+//                setState { copy(loading = false) }
+//            }
+//        }
+//    }
 
     private var _selectedBreed = MutableStateFlow<CatBreedUiModel?>(null)
     val selectedBreed = _selectedBreed.asStateFlow()
 
     fun fetchBreedDetails(breedId: String) {
         viewModelScope.launch {
-            // Ako već imamo detalje u kešu — koristi ih odmah
             cachedBreedDetails[breedId]?.let {
                 _selectedBreed.value = it
                 return@launch
             }
 
             try {
-                val breedDetails = repository.fetchBreedDetails(breedId)
-                val uiModel = breedDetails.asBreedUiModel()
+                val entity = repository.getBreedDetailsFromDb(breedId)
+                val uiModel = entity.toUiModel()
                 cachedBreedDetails[breedId] = uiModel
                 _selectedBreed.value = uiModel
             } catch (e: Exception) {
-                Log.e("FetchBreedDetails", "Failed to fetch breed details", e)
+                Log.e("FetchBreedDetails", "Failed to load from DB", e)
             }
         }
     }
+
     private val _breedImages = MutableStateFlow<List<String>>(emptyList())
     val breedImages: StateFlow<List<String>> = _breedImages
 
@@ -121,40 +134,37 @@ class CatBreedsViewModel @Inject constructor(
         viewModelScope.launch {
             setSearchState { copy(loading = true) }
             try {
-                val breeds = repository.searchBreeds(query)
-
-                // 1. Prvo prikaži podatke bez slika
-                val initialList = breeds.map { it.asBreedUiModel() }
-                setSearchState { copy(breeds = initialList) }
-
-                // 2. Zatim asinhrono ažuriraj slike po jednu
-                breeds.forEach { breed ->
-                    launch {
-                        try {
-                            val imageUrl = repository.fetchBreedImage(breed.imageId)
-                            val updatedBreed = breed.asBreedUiModel().copy(imageUrl = imageUrl)
-
-                            // Ažuriraj samo jednu stavku u listi
-                            setSearchState {
-                                copy(
-                                    breeds = this.breeds.map {
-                                        if (it.id == updatedBreed.id) updatedBreed else it
-                                    }
-                                )
-                            }
-                        } catch (e: Exception) {
-                            Log.e("fetchImage", "Failed to fetch image for ${breed.id}", e)
-                        }
-                    }
-                }
-            } catch (error: Exception) {
-                Log.e("fetchAllBreeds", "Failed to fetch breeds", error)
+                val searchResults = repository.searchBreedsFromDb(query)
+                val uiModels = searchResults.map { it.toUiModel() }
+                setSearchState { copy(breeds = uiModels) }
+            } catch (e: Exception) {
+                Log.e("Search", "Search failed", e)
             } finally {
-                setState { copy(loading = false) }
+                setSearchState { copy(loading = false) }
             }
         }
     }
 
+
+    fun CatBreedEntity.toUiModel() = CatBreedUiModel(
+        name = name,
+        childFriendly = childFriendly,
+        dogFriendly = dogFriendly,
+        energyLevel = energyLevel,
+        imageId = imageId,
+        temperament = temperament,
+        intelligence = intelligence,
+        vocalisation = vocalisation,
+        lifespan = lifeSpan,
+        wikipediaUrl = wikipediaUrl,
+        weight = weight_metric,
+        description = description,
+        isRare = isRare,
+        originCountries = origin,
+        id = id,
+        alternativeName = alternativeNames,
+        imageUrl = imageUrl,
+    )
 
     private fun CatBreedApiModel.asBreedUiModel() = CatBreedUiModel(
         name = this.name,
