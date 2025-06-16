@@ -19,11 +19,6 @@ interface CatBreedApi {
         @Path("breed_id") catName: String,
     ): CatBreedApiModel
 
-    @POST("test/123")
-    suspend fun test(
-        @Body body: String,
-        @Header("CustomHeader") test: String,
-    )
     @GET("images/{image_id}")
     suspend fun getSpecificImage(
         @Path("image_id") imageId: String,

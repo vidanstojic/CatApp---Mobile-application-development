@@ -43,12 +43,10 @@ class CatBreedsViewModel @Inject constructor(
                         repository.refreshAllBreedsFromApi()
                         dataStoreManager.setDbInitialized(true)
                     } catch (e: Exception) {
-                        // Možeš setovati error stanje ako treba
                     } finally {
                         setState { copy(loading = false) }
                     }
                 }
-                // Nakon što smo sigurni da je DB inicijalizovan, slušamo bazu
                 observeBreedsFromDb()
             }
         }

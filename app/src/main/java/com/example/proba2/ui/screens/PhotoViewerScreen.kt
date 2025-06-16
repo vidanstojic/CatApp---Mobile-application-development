@@ -26,10 +26,8 @@ fun PhotoViewerScreen(
 ) {
     val images by viewModel.breedImages.collectAsState()
 
-    // Pronađi index izabrane slike
     val startIndex = images.indexOfFirst { it == selectedImageUrl }.coerceAtLeast(0)
 
-    // Pager state s početnim indeksom
     val pagerState = rememberPagerState(initialPage = startIndex)
 
     LaunchedEffect(breedId) {

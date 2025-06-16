@@ -58,7 +58,6 @@ fun AppTopBar(
                         Icon(Icons.Default.Close, contentDescription = "Cancel")
                     }
                 },
-                // 👇 Kad korisnik pritisne enter na tastaturi
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
                     onSearch = {

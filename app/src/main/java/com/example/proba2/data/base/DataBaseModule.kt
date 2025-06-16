@@ -23,7 +23,7 @@ object DatabaseModule {
 
     @Provides
     fun provideCatBreedDao(database: AppDatabase): CatBreedDao {
-        return database.catBreedDao() // ovo je zapravo CatBreedDao
+        return database.catBreedDao()
     }
 
     @Singleton

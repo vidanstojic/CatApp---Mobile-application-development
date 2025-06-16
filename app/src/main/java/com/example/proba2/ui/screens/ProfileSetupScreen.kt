@@ -23,7 +23,6 @@ fun ProfileSetupScreen(
     var nickname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
 
-    // Ako je profil kreiran, idi dalje
     LaunchedEffect(profileCreated) {
         if (profileCreated) onProfileCreated()
     }

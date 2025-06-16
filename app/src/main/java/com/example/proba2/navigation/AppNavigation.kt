@@ -31,7 +31,6 @@ fun AppNavigation() {
             startDestination = start
         ) {
 
-            // Profil
             composable("profile_setup") {
                 ProfileSetupScreen(
                     onProfileCreated = {
@@ -42,7 +41,6 @@ fun AppNavigation() {
                 )
             }
 
-            // Lista rasa
             composable(route = "breeds") { navBackStackEntry ->
                 val sharedViewModel = hiltViewModel<CatBreedsViewModel>(navBackStackEntry)
 
@@ -57,7 +55,6 @@ fun AppNavigation() {
                 )
             }
 
-            // Detalji rase
             composable(
                 route = "details/{breedId}",
                 arguments = listOf(navArgument("breedId") { type = NavType.StringType })
@@ -76,7 +73,6 @@ fun AppNavigation() {
                 )
             }
 
-            // Galerija slika u gridu
             composable(
                 route = "gallery/{breedId}",
                 arguments = listOf(
@@ -90,8 +86,6 @@ fun AppNavigation() {
                 )
             }
 
-
-            // Viewer slika sa swipe-om
             composable(
                 route = "viewer/{breedId}/{encodedImageUrl}",
                 arguments = listOf(
@@ -110,7 +104,6 @@ fun AppNavigation() {
                 )
             }
 
-            // Pretraga
             composable(
                 route = "search/{query}",
                 arguments = listOf(navArgument("query") { type = NavType.StringType })

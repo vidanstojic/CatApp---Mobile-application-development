@@ -5,12 +5,12 @@ import com.example.proba2.breeds.api.model.Weight
 data class CatBreedUiModel (
     val id: String,
     val name: String,
-    val alternativeName: String?,//proveriti da li treba lista
+    val alternativeName: String?,
     val description: String,
-    val temperament: String,//proveriti da li treba lista
+    val temperament: String,
     val imageId: String?,
     val imageUrl: String?,
-    val originCountries: String,//proveriti da li treba lista
+    val originCountries: String,
     val lifespan: String,
     val weight: Weight,
     val childFriendly: Int,

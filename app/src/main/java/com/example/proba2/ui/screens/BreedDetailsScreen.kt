@@ -52,7 +52,6 @@ fun BreedDetailsScreen(
     val scrollState = rememberScrollState()
     val logoPainter: Painter = painterResource(id = R.drawable.catalist2)
 
-    // Učitavanje detalja i slika
     LaunchedEffect(breedId) {
         viewModel.fetchBreedDetails(breedId)
         viewModel.loadBreedImages(breedId)
@@ -66,7 +65,7 @@ fun BreedDetailsScreen(
         topBar = {
             AppTopBar(
                 logoPainter = logoPainter,
-                onMenuClick = { /* ne koristiš sada */ },
+                onMenuClick = {  },
                 onSearchSubmit = { query ->
                     navController.navigate("search/$query")
                 }
@@ -93,22 +92,10 @@ fun BreedDetailsScreen(
                             .padding(padding)
                             .padding(16.dp)
                     ) {
-                        // 🔁 Slider sa slikama
                         if (images.isNotEmpty()) {
                             ImageSlider(imageUrls = images)
-//                            Spacer(modifier = Modifier.height(16.dp))
                         }
 
-                        // Prikaz detalja
-//                        SubcomposeAsyncImage(
-//                            model = breed!!.imageUrl,
-//                            contentDescription = null,
-//                            contentScale = ContentScale.Inside,
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .wrapContentHeight()
-//                                .clip(MaterialTheme.shapes.medium)
-//                        )
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text("Name: ${breed!!.name}", style = MaterialTheme.typography.titleLarge, color = CatalistOnSurface)
@@ -150,7 +137,6 @@ fun BreedDetailsScreen(
                                 navController.navigate("gallery/${breedId}")
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-//                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Gallery", color = Color.Black)
                         }
@@ -191,10 +177,9 @@ fun ImageSlider(
                     contentDescription = "Breed image",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1.6f) // ili 16:10 — prilagodi kako ti odgovara
+                        .aspectRatio(1.6f)
                         .clip(MaterialTheme.shapes.medium),
                     contentScale = ContentScale.Crop,
-            // zadrzava aspect ratio bez deformacije
                     loading = {
                         Box(
                             Modifier.fillMaxSize(),

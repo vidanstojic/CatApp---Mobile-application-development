@@ -26,8 +26,8 @@ object NetworkingModule {
          * Order of okhttp interceptors is important.
          * If logging was first it would not log the custom header.
          */
-        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // vreme za povezivanje sa serverom
-        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)    // vreme za čitanje odgovora
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .addInterceptor {
             val updatedRequest = it.request().newBuilder()

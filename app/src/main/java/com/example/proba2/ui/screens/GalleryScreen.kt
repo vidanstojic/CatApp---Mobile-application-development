@@ -28,7 +28,6 @@ fun GalleryScreen(
 ) {
     val images by viewModel.breedImages.collectAsState()
 
-    // ✔️ Učitaj slike samo ako nisu već učitane
     LaunchedEffect(breedId) {
         if (images.isEmpty()) {
             viewModel.loadBreedImages(breedId)

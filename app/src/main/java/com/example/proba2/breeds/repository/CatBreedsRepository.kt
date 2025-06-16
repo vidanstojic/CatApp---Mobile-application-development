@@ -1,7 +1,6 @@
 package com.example.proba2.breeds.repository
 
 import android.content.Context
-import android.preference.PreferenceManager
 import android.util.Log
 import com.example.proba2.breeds.api.CatBreedApi
 import com.example.proba2.breeds.api.model.CatBreedApiModel
@@ -39,7 +38,6 @@ class CatBreedsRepository @Inject constructor(
         }
         dao.clearAll()
         dao.insertAll(mapped)
-        markApiRefreshed()
     }
 
     suspend fun searchBreedsFromDb(query: String): List<CatBreedEntity> {
@@ -69,15 +67,5 @@ class CatBreedsRepository @Inject constructor(
                 emptyList()
             }
         }
-    }
-
-    fun shouldRefreshFromApi(): Boolean {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        return !prefs.getBoolean("is_data_initialized", false)
-    }
-
-    fun markApiRefreshed() {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        prefs.edit().putBoolean("is_data_initialized", true).apply()
     }
 }
