@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,30 +15,15 @@ import com.example.proba2.ui.screens.BreedListScreen
 import androidx.compose.runtime.getValue
 import com.example.proba2.ui.screens.SearchScreen
 
-private fun NavController.navigateToDetails(breedId: String) {
-    this.navigate(route = "details/$breedId")
-}
-//
-//private fun NavController.navigateToEditor(passwordId: Int? = null) {
-//    if (passwordId != null) {
-//        this.navigate(route = "editor?$PASSWORD_ID_ARG=$passwordId")
-//    } else {
-//        this.navigate(route = "editor")
-//    }
-//}
-
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // Važan korak – koristimo NavHost sa početnom rutom
     NavHost(
         navController = navController,
         startDestination = "breeds"
     ) {
-        // Ekran sa listom rasa
         composable(route = "breeds") { navBackStackEntry ->
-            // Deljeni ViewModel koji se koristi i u details ekranu
             val sharedViewModel = hiltViewModel<CatBreedsViewModel>(navBackStackEntry)
 
             val state by sharedViewModel.state.collectAsState()
@@ -54,7 +37,6 @@ fun AppNavigation() {
             )
         }
 
-        // Ekran sa detaljima o rasi
         composable(
             route = "details/{breedId}",
             arguments = listOf(

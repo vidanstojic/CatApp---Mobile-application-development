@@ -17,11 +17,11 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = CatalistPrimary,       // TopBar
-    secondary = CatalistSecondary,   // Chipovi itd.
-    background = CatalistBackground, // App pozadina
-    surface = CatalistSurface,       // Kartice
-    onSurface = CatalistOnSurface,   // Tekst u karticama itd.
+    primary = CatalistPrimary,
+    secondary = CatalistSecondary,
+    background = CatalistBackground,
+    surface = CatalistSurface,
+    onSurface = CatalistOnSurface,
 )
 
 

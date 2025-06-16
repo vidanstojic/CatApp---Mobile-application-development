@@ -8,10 +8,10 @@ data class CatBreedApiModel(
     val id: String,
     val name: String,
     @SerialName("alt_names")
-    val alternativeNames: String? = null,//proveriti da li treba lista
+    val alternativeNames: String? = null,
     val description: String,
-    val temperament: String,//proveriti da li treba lista
-    val origin: String,//proveriti da li treba lista
+    val temperament: String,
+    val origin: String,
     @SerialName("country_codes")
     val countryCodes: String,
     @SerialName("country_code")

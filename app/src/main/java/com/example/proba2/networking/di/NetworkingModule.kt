@@ -25,7 +25,6 @@ object NetworkingModule {
          */
         .addInterceptor {
             val updatedRequest = it.request().newBuilder()
-//                .url("https://servis.raf.edu.rs/users")
                 .addHeader("x-api-key", "live_w8GyQ3lo3gZySK5BVFAIAgDUPt7vpkxltJ3tmLTvgT9yy2L6OB8mzmysp2HkiFjI")
                 .build()
 
