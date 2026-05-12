@@ -93,6 +93,10 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
+    // Accompanist (za slider)
+    implementation("com.google.accompanist:accompanist-pager:0.31.5-beta")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.31.5-beta")
+
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -101,4 +105,18 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Room
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    
+    implementation ("com.google.accompanist:accompanist-pager:0.34.0")
+    implementation ("com.google.accompanist:accompanist-pager-indicators:0.34.0")
+
+
 }
