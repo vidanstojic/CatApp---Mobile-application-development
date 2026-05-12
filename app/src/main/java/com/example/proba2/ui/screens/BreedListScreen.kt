@@ -68,16 +68,38 @@ fun BreedListScreen(
 
     val logo = painterResource(id = R.drawable.catalist2)
 
+    var showMenuDialog = remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    if (showMenuDialog.value) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showMenuDialog.value = false },
+            title = { Text("Menu") },
+            text = { Text("Choose an action") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showMenuDialog.value = false
+                    navController.navigate("quiz")
+                }) { Text("Start Quiz") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showMenuDialog.value = false
+                    navController.navigate("leaderboard")
+                }) { Text("Leaderboard") }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = CatalistPrimary,
         topBar = {
-            AppTopBar(
-                logoPainter = logo,
-                onMenuClick = { /* ako treba */ },
-                onSearchSubmit = { query ->
-                    navController.navigate("search/${query}")
-                }
-            )
+                AppTopBar(
+                    logoPainter = logo,
+                    onMenuClick = { showMenuDialog.value = true },
+                    onSearchSubmit = { query ->
+                        navController.navigate("search/${query}")
+                    }
+                )
         },
         floatingActionButton = {
             if (showScrollToTop) {

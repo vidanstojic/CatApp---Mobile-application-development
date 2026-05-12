@@ -9,6 +9,8 @@ import androidx.navigation.*
 import androidx.navigation.compose.*
 import com.example.proba2.breeds.list.CatBreedsViewModel
 import com.example.proba2.ui.screens.*
+import com.example.proba2.quiz.QuizScreen
+import com.example.proba2.quiz.QuizResultScreen
 import com.example.proba2.user.viewmodel.UserProfileViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -39,6 +41,38 @@ fun AppNavigation() {
                         }
                     }
                 )
+            }
+
+            composable(route = "quiz") {
+                QuizScreen(onFinish = { score, total ->
+                    if (score < 0) {
+                        // cancelled by user - go back to breeds without showing result
+                        navController.navigate("breeds") {
+                            popUpTo("quiz") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("quiz/result/${score}/${total}") {
+                            popUpTo("breeds")
+                        }
+                    }
+                })
+            }
+
+            composable(
+                route = "quiz/result/{score}/{total}",
+                arguments = listOf(navArgument("score") { type = NavType.IntType }, navArgument("total") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val score = backStackEntry.arguments?.getInt("score") ?: 0
+                val total = backStackEntry.arguments?.getInt("total") ?: 0
+                QuizResultScreen(score = score, totalQuestions = total) {
+                    navController.navigate("breeds") {
+                        popUpTo("quiz/result/$score/$total") { inclusive = true }
+                    }
+                }
+            }
+
+            composable(route = "leaderboard") {
+                LeaderboardScreen()
             }
 
             composable(route = "breeds") { navBackStackEntry ->
