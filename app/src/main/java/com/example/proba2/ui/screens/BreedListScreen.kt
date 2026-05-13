@@ -1,49 +1,39 @@
 package com.example.proba2.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Leaderboard
+import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Quiz
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil3.compose.SubcomposeAsyncImage
 import com.example.proba2.breeds.list.CatBreedsListState
 import com.example.proba2.breeds.list.model.CatBreedUiModel
@@ -54,85 +44,175 @@ import com.example.proba2.ui.theme.CatalistSecondary
 import kotlinx.coroutines.launch
 import rs.edu.raf.rma.R
 
+data class DrawerNavItem(
+    val label: String,
+    val route: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+)
+
+val drawerNavItems = listOf(
+    DrawerNavItem("Početna",    "breeds",      Icons.Filled.Home,        Icons.Outlined.Home),
+    DrawerNavItem("Quiz",       "quiz",        Icons.Filled.Quiz,        Icons.Outlined.Quiz),
+    DrawerNavItem("Leaderboard","leaderboard", Icons.Filled.Leaderboard, Icons.Outlined.Leaderboard),
+)
+
+@Composable
+fun AppDrawerContent(
+    currentRoute: String?,
+    onItemClick: (String) -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(CatalistSecondary, CatalistPrimary)
+                )
+            ),
+        contentAlignment = Alignment.BottomStart
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Text(
+                text = "🐱 Catalist",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = CatalistOnSurface
+            )
+            Text(
+                text = "Explore cat breeds",
+                fontSize = 13.sp,
+                color = CatalistOnSurface.copy(alpha = 0.7f)
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    drawerNavItems.forEach { item ->
+        val selected = currentRoute == item.route
+
+        NavigationDrawerItem(
+            icon = {
+                Icon(
+                    imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                    contentDescription = item.label,
+                )
+            },
+            label = {
+                Text(
+                    text = item.label,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                )
+            },
+            selected = selected,
+            onClick = { onItemClick(item.route) },
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = CatalistSecondary.copy(alpha = 0.25f),
+                selectedIconColor = CatalistSecondary,
+                selectedTextColor = CatalistSecondary,
+                unselectedIconColor = CatalistOnSurface.copy(alpha = 0.65f),
+                unselectedTextColor = CatalistOnSurface.copy(alpha = 0.65f),
+            )
+        )
+    }
+}
 @Composable
 fun BreedListScreen(
     state: CatBreedsListState,
     onBreedClick: (String) -> Unit,
-    navController: NavController
+    navController: NavController,
 ) {
     val uiScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val showScrollToTop by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 }
-    }
+    val showScrollToTop by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     val logo = painterResource(id = R.drawable.catalist2)
 
-    var showMenuDialog = remember { androidx.compose.runtime.mutableStateOf(false) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    if (showMenuDialog.value) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showMenuDialog.value = false },
-            title = { Text("Menu") },
-            text = { Text("Choose an action") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showMenuDialog.value = false
-                    navController.navigate("quiz")
-                }) { Text("Start Quiz") }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = CatalistPrimary,
+                drawerTonalElevation = 0.dp,
+            ) {
+                AppDrawerContent(
+                    currentRoute = currentRoute,
+                    onItemClick = { route ->
+                        uiScope.launch { drawerState.close() }
+                        if (currentRoute != route) {
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    ) {
+        Scaffold(
+            containerColor = CatalistPrimary,
+
+            topBar = {
+                AppTopBar(
+                    logoPainter = logo,
+                    onMenuClick = {
+                        uiScope.launch {
+                            if (drawerState.isClosed) drawerState.open()
+                            else drawerState.close()
+                        }
+                    },
+                    onSearchSubmit = { query ->
+                        navController.navigate("search/$query")
+                    }
+                )
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    showMenuDialog.value = false
-                    navController.navigate("leaderboard")
-                }) { Text("Leaderboard") }
+
+            floatingActionButton = {
+                if (showScrollToTop) {
+                    FloatingActionButton(
+                        onClick = { uiScope.launch { listState.scrollToItem(0) } },
+                        containerColor = CatalistSecondary,
+                    ) {
+                        Icon(
+                            Icons.Default.KeyboardArrowUp,
+                            contentDescription = "Scroll to Top",
+                            tint = CatalistOnSurface,
+                        )
+                    }
+                }
+            },
+
+            content = { paddingValues ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    items(
+                        items = state.breeds,
+                        key = { it.id },
+                        contentType = { "BreedListItem" },
+                    ) {
+                        BreedListItem(model = it, onBreedClick = onBreedClick)
+                    }
+                }
             }
         )
     }
-
-    Scaffold(
-        containerColor = CatalistPrimary,
-        topBar = {
-                AppTopBar(
-                    logoPainter = logo,
-                    onMenuClick = { showMenuDialog.value = true },
-                    onSearchSubmit = { query ->
-                        navController.navigate("search/${query}")
-                    }
-                )
-        },
-        floatingActionButton = {
-            if (showScrollToTop) {
-                FloatingActionButton(
-                    onClick = {
-                        uiScope.launch { listState.scrollToItem(index = 0) }
-                    }
-                ) {
-                    Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to Top")
-                }
-            }
-        },
-        content = { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(
-                    items = state.breeds,
-                    key = { breed -> breed.id },
-                    contentType = { "BreedListItem" },
-                ) {
-                    BreedListItem(
-                        model = it,
-                        onBreedClick = onBreedClick,
-                    )
-                }
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -142,20 +222,15 @@ fun BreedListItem(
     onBreedClick: (String) -> Unit,
 ) {
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = CatalistSecondary
-        ),
+        colors = CardDefaults.cardColors(containerColor = CatalistSecondary),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .clickable { onBreedClick(model.id) },
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
+        Row(modifier = Modifier.padding(16.dp)) {
             SubcomposeAsyncImage(
                 model = model.imageUrl,
                 contentDescription = null,
@@ -172,65 +247,42 @@ fun BreedListItem(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red)
                     }
-                }
+                },
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = model.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = CatalistOnSurface
-                )
+                Text(text = model.name, style = MaterialTheme.typography.titleMedium, color = CatalistOnSurface)
 
                 model.alternativeName?.takeIf { it.isNotBlank() }?.let {
-                    Text(
-                        text = "aka: $it",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = CatalistOnSurface
-                    )
+                    Text(text = "aka: $it", style = MaterialTheme.typography.bodySmall, color = CatalistOnSurface)
                 }
 
                 Text(
-                    text = model.description.take(200) + if (model.description.length > 200) "..." else "",
+                    text = model.description.take(200) + if (model.description.length > 200) "…" else "",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 6.dp),
-                    color = CatalistOnSurface
+                    color = CatalistOnSurface,
                 )
 
                 if (model.temperament.isNotEmpty()) {
-                            FlowRow(
-                                modifier = Modifier
-                                    .padding(top = 12.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                model.temperament
-                                    .split(",")
-                                    .map { it.trim() }
-                                    .take(5)
-                                    .forEach { trait ->
-                                        AssistChip(
-                                            onClick = { },
-                                            label = {
-                                                Text(
-                                                    text = trait,
-                                                    color = Color.White
-                                                )
-                                            },
-                                            border = BorderStroke(1.dp, Color.White),
-                                            colors = AssistChipDefaults.assistChipColors(
-                                                containerColor = Color.Transparent
-                                            )
-                                        )
-                                    }
-                            }
-
+                    FlowRow(
+                        modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        model.temperament.split(",").map { it.trim() }.take(5).forEach { trait ->
+                            AssistChip(
+                                onClick = {},
+                                label = { Text(text = trait, color = Color.White) },
+                                border = BorderStroke(1.dp, Color.White),
+                                colors = AssistChipDefaults.assistChipColors(containerColor = Color.Transparent),
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
-

@@ -64,4 +64,10 @@ object NetworkingModule {
         return UserProfileRepository(context)
     }
 
+    @Provides
+    @Singleton
+    fun provideLeaderboardApi(leaderboardRetrofit: Retrofit): com.example.proba2.leaderboard.api.LeaderboardApi {
+        return leaderboardRetrofit.create(com.example.proba2.leaderboard.api.LeaderboardApi::class.java)
+    }
+
 }

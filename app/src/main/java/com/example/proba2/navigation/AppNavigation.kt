@@ -8,6 +8,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.*
 import androidx.navigation.compose.*
 import com.example.proba2.breeds.list.CatBreedsViewModel
+import com.example.proba2.leaderboard.ui.LeaderboardScreen
 import com.example.proba2.ui.screens.*
 import com.example.proba2.quiz.QuizScreen
 import com.example.proba2.quiz.QuizResultScreen
