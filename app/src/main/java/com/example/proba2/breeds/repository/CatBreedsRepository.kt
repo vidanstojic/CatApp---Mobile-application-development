@@ -1,19 +1,14 @@
 package com.example.proba2.breeds.repository
 
 import android.content.Context
-import android.util.Log
 import com.example.proba2.breeds.api.CatBreedApi
-import com.example.proba2.breeds.api.model.CatBreedApiModel
 import com.example.proba2.breeds.api.model.toEntity
 import com.example.proba2.data.base.CatBreedDao
 import com.example.proba2.data.model.CatBreedEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import javax.inject.Inject
 class CatBreedsRepository @Inject constructor(
     private val catBreedApi: CatBreedApi,
@@ -29,11 +24,8 @@ class CatBreedsRepository @Inject constructor(
     suspend fun refreshAllBreedsFromApi() = withContext(Dispatchers.IO) {
         val apiData = catBreedApi.getAllCatBreeds()
         val mapped = apiData.map { apiModel ->
-            val imageUrl = try {
-                fetchBreedImage(apiModel.imageId)
-            } catch (_: Exception) {
-                null
-            }
+            // Avoid N+1 image requests on app startup. Build direct CDN URL from reference id.
+            val imageUrl = apiModel.imageId?.let { "https://cdn2.thecatapi.com/images/$it.jpg" }
             apiModel.toEntity().copy(imageUrl = imageUrl)
         }
         dao.clearAll()

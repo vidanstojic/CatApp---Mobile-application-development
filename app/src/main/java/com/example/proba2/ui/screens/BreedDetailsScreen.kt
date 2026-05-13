@@ -65,7 +65,12 @@ fun BreedDetailsScreen(
         topBar = {
             AppTopBar(
                 logoPainter = logoPainter,
-                onMenuClick = {  },
+                onMenuClick = {
+                    navController.navigate("breeds") {
+                        popUpTo("breeds") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 onSearchSubmit = { query ->
                     navController.navigate("search/$query")
                 }

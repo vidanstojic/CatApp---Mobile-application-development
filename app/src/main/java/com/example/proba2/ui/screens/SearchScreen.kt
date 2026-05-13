@@ -14,26 +14,39 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.proba2.breeds.list.CatBreedsViewModel
 import com.example.proba2.breeds.list.model.CatBreedUiModel
 import com.example.proba2.ui.compose.AppTopBar
+import com.example.proba2.ui.compose.AppDrawerContent
 import com.example.proba2.ui.theme.CatalistPrimary
 import kotlinx.coroutines.launch
+import rs.edu.raf.rma.R
 
 @Composable
 fun SearchScreen(
     query: String,
     onBreedClick: (String) -> Unit,
+    navController: androidx.navigation.NavController,
     viewModel: CatBreedsViewModel = hiltViewModel()
 ) {
     val results by viewModel.results.collectAsState()
     val uiScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val logo = painterResource(id = R.drawable.catalist2)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     val showScrollToTop by remember {
         derivedStateOf { listState.firstVisibleItemIndex > 0 }
     }
@@ -41,8 +54,40 @@ fun SearchScreen(
         viewModel.search(query)
     }
 
-    Scaffold(
-        containerColor = CatalistPrimary,
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = CatalistPrimary,
+                drawerTonalElevation = 0.dp,
+            ) {
+                AppDrawerContent(
+                    currentRoute = currentRoute,
+                    onItemClick = { route ->
+                        uiScope.launch { drawerState.close() }
+                        if (currentRoute != route) {
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    ) {
+        Scaffold(
+            containerColor = CatalistPrimary,
+            topBar = {
+                AppTopBar(
+                    logoPainter = logo,
+                    onMenuClick = { uiScope.launch { drawerState.open() } },
+                    onSearchSubmit = { newQuery -> viewModel.search(newQuery) }
+                )
+            },
         floatingActionButton = {
             if (showScrollToTop) {
                 FloatingActionButton(
@@ -75,4 +120,5 @@ fun SearchScreen(
             }
         }
     )
+    }
 }

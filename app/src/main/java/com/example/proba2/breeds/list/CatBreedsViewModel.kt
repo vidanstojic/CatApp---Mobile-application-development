@@ -1,25 +1,17 @@
 package com.example.proba2.breeds.list
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proba2.breeds.api.model.CatBreedApiModel
 import com.example.proba2.breeds.list.model.CatBreedUiModel
 import com.example.proba2.breeds.repository.CatBreedsRepository
 import com.example.proba2.data.base.PreferencesDataStoreManager
 import com.example.proba2.data.model.CatBreedEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +20,9 @@ class CatBreedsViewModel @Inject constructor(
     private val repository: CatBreedsRepository,
     private val dataStoreManager: PreferencesDataStoreManager,
 ) : ViewModel() {
+    companion object {
+        private const val SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000L
+    }
 
     private val cachedBreedDetails = mutableMapOf<String, CatBreedUiModel>()
     private val _state = MutableStateFlow(CatBreedsListState())
@@ -35,19 +30,28 @@ class CatBreedsViewModel @Inject constructor(
     private fun setState(reducer: CatBreedsListState.() -> CatBreedsListState) = _state.update(reducer)
 
     init {
+        observeBreedsFromDb()
         viewModelScope.launch {
-            dataStoreManager.isDbInitializedFlow.collect { initialized ->
-                if (!initialized) {
+            val initialized = dataStoreManager.isDbInitializedFlow.first()
+            val lastSync = dataStoreManager.lastSyncTimestampFlow.first()
+            val shouldRefresh = !initialized || System.currentTimeMillis() - lastSync >= SYNC_INTERVAL_MS
+
+            if (shouldRefresh) {
+                val shouldBlockUi = !initialized
+                if (shouldBlockUi) {
                     setState { copy(loading = true) }
-                    try {
-                        repository.refreshAllBreedsFromApi()
-                        dataStoreManager.setDbInitialized(true)
-                    } catch (e: Exception) {
-                    } finally {
+                }
+                try {
+                    repository.refreshAllBreedsFromApi()
+                    dataStoreManager.setDbInitialized(true)
+                    dataStoreManager.setLastSyncTimestamp(System.currentTimeMillis())
+                } catch (_: Exception) {
+                    Log.e("CatBreedsViewModel", "Initial refresh failed")
+                } finally {
+                    if (shouldBlockUi) {
                         setState { copy(loading = false) }
                     }
                 }
-                observeBreedsFromDb()
             }
         }
     }

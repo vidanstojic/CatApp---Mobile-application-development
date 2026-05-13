@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.ui.platform.LocalContext
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import coil3.compose.SubcomposeAsyncImage
 import com.example.proba2.breeds.list.CatBreedsListState
 import com.example.proba2.breeds.list.model.CatBreedUiModel
@@ -221,6 +224,7 @@ fun BreedListItem(
     model: CatBreedUiModel,
     onBreedClick: (String) -> Unit,
 ) {
+    val context = LocalContext.current
     Card(
         colors = CardDefaults.cardColors(containerColor = CatalistSecondary),
         modifier = Modifier
@@ -231,23 +235,16 @@ fun BreedListItem(
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
-            SubcomposeAsyncImage(
-                model = model.imageUrl,
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(model.imageUrl)
+                    .size(200)
+                    .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(100.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                loading = {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(strokeWidth = 2.dp)
-                    }
-                },
-                error = {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Error, contentDescription = null, tint = Color.Red)
-                    }
-                },
             )
 
             Spacer(modifier = Modifier.width(16.dp))

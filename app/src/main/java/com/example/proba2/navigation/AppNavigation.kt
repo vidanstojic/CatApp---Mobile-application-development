@@ -56,7 +56,7 @@ fun AppNavigation() {
                             popUpTo("breeds")
                         }
                     }
-                })
+                }, navController = navController)
             }
 
             composable(
@@ -65,15 +65,15 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val score = backStackEntry.arguments?.getInt("score") ?: 0
                 val total = backStackEntry.arguments?.getInt("total") ?: 0
-                QuizResultScreen(score = score, totalQuestions = total) {
+                QuizResultScreen(score = score, totalQuestions = total, onBackToHome = {
                     navController.navigate("breeds") {
                         popUpTo("quiz/result/$score/$total") { inclusive = true }
                     }
-                }
+                }, navController = navController)
             }
 
             composable(route = "leaderboard") {
-                LeaderboardScreen()
+                LeaderboardScreen(navController = navController)
             }
 
             composable(route = "breeds") { navBackStackEntry ->
@@ -148,7 +148,8 @@ fun AppNavigation() {
                     query = query,
                     onBreedClick = { breedId ->
                         navController.navigate("details/$breedId")
-                    }
+                    },
+                    navController = navController
                 )
             }
         }
